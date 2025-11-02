@@ -54,11 +54,4 @@ fi
 echo "changing default shell to zsh"
 chsh -s $(which zsh)
 
-# Install Claude Code CLI if not already installed
-if ! command -v claude &> /dev/null; then
-    echo ""
-    echo "Installing Claude Code..."
-    curl -LsSf https://claude.ai/install.sh | bash
-fi
-
 zsh

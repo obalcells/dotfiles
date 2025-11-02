@@ -174,6 +174,13 @@ setup_vscode() {
 # Call setup_vscode function
 setup_vscode
 
+# Install Claude Code CLI if not already installed
+if ! command -v claude &> /dev/null; then
+    echo ""
+    echo "Installing Claude Code..."
+    curl -LsSf https://claude.ai/install.sh | bash
+fi
+
 if [ $extras == true ]; then
     echo " --------- INSTALLING EXTRAS ⏳ ----------- "
     if command -v cargo &> /dev/null; then
