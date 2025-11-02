@@ -130,8 +130,16 @@ setup_vscode() {
     echo "Setting up VSCode/Cursor extensions..."
 
     # Try to find VSCode and Cursor paths
-    vscode_path=$(ls -td ~/.vscode-server/cli/servers/*/server/bin/remote-cli/code 2>/dev/null | head -1)
-    cursor_path=$(ls -td ~/.cursor-server/cli/servers/*/server/bin/remote-cli/cursor 2>/dev/null | head -1)
+    vscode_path=""
+    cursor_path=""
+
+    if ls ~/.vscode-server/cli/servers/*/server/bin/remote-cli/code 2>/dev/null 1>&2; then
+        vscode_path=$(ls -td ~/.vscode-server/cli/servers/*/server/bin/remote-cli/code 2>/dev/null | head -1 || true)
+    fi
+
+    if ls ~/.cursor-server/cli/servers/*/server/bin/remote-cli/cursor 2>/dev/null 1>&2; then
+        cursor_path=$(ls -td ~/.cursor-server/cli/servers/*/server/bin/remote-cli/cursor 2>/dev/null | head -1 || true)
+    fi
 
     # Determine which editor to use
     if [ -n "$cursor_path" ]; then
@@ -151,19 +159,21 @@ setup_vscode() {
     echo "alias $editor_name=\"$editor\"" >> ~/.bashrc
     echo 'export PATH="/root/.local/bin:$PATH"' >> ~/.bashrc
 
-    # Update the system and install jq
-    if [ $machine == "Linux" ]; then
-        apt-get update
-        apt-get install -y jq
-    elif [ $machine == "Mac" ]; then
-        brew install jq
+    # Update the system and install jq if not already installed
+    if ! command -v jq &> /dev/null; then
+        if [ $machine == "Linux" ]; then
+            apt-get update
+            apt-get install -y jq
+        elif [ $machine == "Mac" ]; then
+            brew install jq
+        fi
     fi
 
     # Install recommended extensions
     if [ -f "$DOT_DIR/config/vscode_extensions.json" ]; then
         jq -r '.recommendations[]' "$DOT_DIR/config/vscode_extensions.json" | while read extension; do
             echo "Installing extension: $extension"
-            "$editor" --install-extension "$extension"
+            "$editor" --install-extension "$extension" || echo "Failed to install $extension, continuing..."
         done
         echo "Extensions installed successfully!"
     else

@@ -1,26 +1,47 @@
 #!/bin/bash
 
-# 1) Setup linux dependencies
-su -c 'apt-get update && apt-get install -y sudo'
-sudo apt-get install -y less nano htop ncdu nvtop lsof rsync btop jq
+# RunPod Complete Setup Script
+# This script sets up a complete development environment on RunPod instances
 
-# 2) Setup virtual environment
-curl -LsSf https://astral.sh/uv/install.sh | sh
+echo "=========================================="
+echo "   RunPod Environment Setup"
+echo "=========================================="
+echo ""
+
+# 1) Setup linux dependencies
+echo "Installing system dependencies..."
+su -c 'apt-get update && apt-get install -y sudo'
+sudo apt-get install -y git
+
+# 2) Setup dotfiles and ZSH
+echo ""
+echo "Setting up dotfiles..."
+mkdir -p ~/git && cd ~/git
+git clone https://github.com/obalcells/dotfiles.git
+cd dotfiles
+chmod +x setup.sh
+./setup.sh --zsh --tmux --vim --cc --vscode
+
+# 3) Setup virtual environment
+echo ""
+echo "Setting up Python virtual environment..."
+cd ~
 source $HOME/.local/bin/env
 uv python install 3.11
 uv venv
 source .venv/bin/activate
-uv pip install ipykernel simple-gpu-scheduler # very useful on runpod with multi-GPUs https://pypi.org/project/simple-gpu-scheduler/
-python -m ipykernel install --user --name=venv # so it shows up in jupyter notebooks within vscode
+uv pip install ipykernel simple-gpu-scheduler # very useful on runpod with multi-GPUs
+python -m ipykernel install --user --name=venv # shows up in jupyter notebooks within vscode
 
-# 3) Setup dotfiles and ZSH
-mkdir git && cd git
-git clone https://github.com/obalcells/dotfiles.git
-cd dotfiles
-./install.sh --zsh --tmux
-chsh -s /usr/bin/zsh
-./deploy.sh
-cd ..
+# 4) Setup github (optional - uncomment and edit with your details)
+# echo ""
+echo "Setting up GitHub..."
+./setup_github.sh "your.email@example.com" "Your Name"
 
-# 4) Setup github
-echo ./scripts/setup_github.sh "balcells.oscar@gmail.com" "Oscar Balcells Obeso"
+echo ""
+echo "=========================================="
+echo "   RunPod Setup Complete!"
+echo "=========================================="
+echo ""
+echo "Please restart your terminal or run: exec zsh"
+echo ""
